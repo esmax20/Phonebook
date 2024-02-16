@@ -28,11 +28,18 @@ let persons = [
 
 var morgan = require('morgan')
 morgan.token('cont', function (req) {
+  if (req.body.name === undefined) {
+    return ""    
+  }
+  else {
     return (`{"name":"${req.body.name}", "number":"${req.body.number}"}`)
-  })
+  }
+})
+morgan.token('type', function (req, res) { return req.headers['content-type'] })
 
 app.use(express.json())
-app.use(morgan(':method :url :response-time :cont'))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :cont'))
+
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
