@@ -8,7 +8,7 @@ app.use(express.static('dist'))
 var morgan = require('morgan')
 morgan.token('cont', function (req) {
   if (req.body.name === undefined) {
-    return ""    
+    return ''
   } else {
     return (`{"name":"${req.body.name}", "number":"${req.body.number}"}`)
   }
@@ -19,20 +19,20 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :c
 
 
 app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
+  response.send('<h1>Hello World!</h1>')
 })
 
-app.get('/info', (request, response) => {
-    response.send(`<p>Phonebook has info for ${persons.length} people</p><p>${Date().toString()}</p>`)
-})
-  
+/* app.get('/info', (request, response) => {
+  response.send(`<p>Phonebook has info for ${persons.length} people</p><p>${Date().toString()}</p>`)
+}) */
+
 app.get('/api/persons', (request, response) => {
   Person.find({}).then(persons => {
     response.json(persons)
   })
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id)
     .then(person => {
       if (person) {
@@ -54,27 +54,26 @@ app.delete('/api/persons/:id', (request, response, next) => {
 })
 
 app.post('/api/persons', (request, response, next) => {
-    const body = request.body
-  
-    if (body.name === undefined) {
-      return response.status(400).json({ error: 'name missing' })
-    }
+  const body = request.body
 
-    if (body.number === undefined) {
-        return response.status(400).json({ error: 'number missing' })
-    }
-    
-    
-    const person = new Person({
-      name: body.name,
-      number: body.number,
+  if (body.name === undefined) {
+    return response.status(400).json({ error: 'name missing' })
+  }
+
+  if (body.number === undefined) {
+    return response.status(400).json({ error: 'number missing' })
+  }
+
+  const person = new Person({
+    name: body.name,
+    number: body.number,
+  })
+
+  person.save()
+    .then(savedPerson => {
+      response.json(savedPerson)
     })
-  
-    person.save()
-      .then(savedPerson => {
-        response.json(savedPerson)
-      })
-      .catch(error => next(error))
+    .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
@@ -83,7 +82,7 @@ app.put('/api/persons/:id', (request, response, next) => {
 
   Person.findByIdAndUpdate(
     request.params.id,
-    { name, number},
+    { name, number },
     { new: true, runValidators: true, context: 'query' }
   )
     .then(updatedPerson => {
@@ -91,7 +90,7 @@ app.put('/api/persons/:id', (request, response, next) => {
     })
     .catch(error => next(error))
 })
-  
+
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
@@ -114,5 +113,5 @@ app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+  console.log(`Server running on port ${PORT}`)
 })
